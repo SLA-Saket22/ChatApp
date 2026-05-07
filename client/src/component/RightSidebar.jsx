@@ -1,51 +1,74 @@
-import React, { useContext, useEffect,useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import assets from "../assets/assets";
 import { ChatContext } from "../../context/ChatContext";
 import { AuthContext } from "../../context/AuthContext";
 
 const RightSidebar = () => {
+  const { selectedUser, messages } = useContext(ChatContext);
+  const { logout, onlineUsers } = useContext(AuthContext);
+  const [msgImages, setMsgImages] = useState([]);
 
-  const {selectedUser, messages} = useContext(ChatContext)
-  const {logout, onlineUsers} = useContext(AuthContext)
-  const [msgImages, setmsgImages] = useState([])
+  useEffect(() => {
+    setMsgImages(messages.filter((m) => m.image).map((m) => m.image));
+  }, [messages]);
 
-  //get all the images from the message and set them to state
-  useEffect(()=>{
-    setmsgImages(
-      messages.filter(msg => msg.image).map(msg=> msg.image)
-    )
-  },[messages])
+  if (!selectedUser) return null;
 
-  return selectedUser ? (
-    <div
-      className={`bg-[#8185B2]/10 relative  overflow-y-scroll text-white ${selectedUser ? "max-md:hidden" : ""} `}
-    >
-      <div className="pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
-        <img src={selectedUser.profilePic || assets.avatar_icon} alt="" className="w-20 aspect-[1/1] rounded-full"/>
-        <h1 className="px-10 text-xl font-medium mx-auto flex items-center gap-2 ">
-          {onlineUsers.includes(selectedUser._id) && <p className="w-2 h-2 rounded-full bg-green-500"></p>}
-          {selectedUser.fullName}
-        </h1>
-        <p className="px-10 mx-auto">{selectedUser.bio || "No bio available"}</p>
+  const isOnline = onlineUsers.includes(selectedUser._id);
+
+  return (
+    <div className="w-[220px] flex-shrink-0 border-l border-white/[0.06] flex flex-col items-center px-4 py-6 overflow-hidden text-white">
+
+      {/* Profile info — fixed top section */}
+      <div className="flex flex-col items-center w-full flex-shrink-0">
+        <img
+          src={selectedUser.profilePic || assets.avatar_icon}
+          alt=""
+          className="w-16 h-16 rounded-full object-cover mb-3"
+        />
+        <div className="flex items-center gap-2 mb-1">
+          {isOnline && <span className="w-2 h-2 bg-emerald-400 rounded-full" />}
+          <h2 className="text-[13px] font-semibold">{selectedUser.fullName}</h2>
+        </div>
+        <p className="text-[11px] text-white/35 text-center leading-relaxed px-2">
+          {selectedUser.bio || "No bio available"}
+        </p>
       </div>
 
-      <hr  className="border-[#ffffff50] my-4"/>
-      <div className="px-5 text-xs">
-        <p>Media</p>
-        <div className="mt-2 max-h-[200px] overflow-y-scroll grid grid-cols-2 gap-4 opacity-80">
-          {msgImages.map((url, index) =>(
-            <div key={index} onClick={() => window.open(url)} className="cursor-pointer rounded">
-              <img src={url} alt="" className="h-full rounded-md" />
-            </div>
-          ))}
+      <hr className="w-full border-white/[0.06] my-4 flex-shrink-0" />
+
+      {/* Media — scrollable middle section */}
+      <div className="flex flex-col w-full flex-1 min-h-0 overflow-hidden">
+        <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2 flex-shrink-0">Media</p>
+        <div className="overflow-y-auto flex-1 min-h-0">
+          <div className="grid grid-cols-2 gap-2 w-full">
+            {msgImages.length === 0 && (
+              <p className="col-span-2 text-[11px] text-white/20 text-center py-4">No media yet</p>
+            )}
+            {msgImages.map((url, i) => (
+              <div
+                key={i}
+                onClick={() => window.open(url)}
+                className="aspect-square rounded-lg overflow-hidden cursor-pointer opacity-80 hover:opacity-100 transition-opacity bg-white/5"
+              >
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-      <button onClick={()=> logout()
-      } className="absolute bottom-5 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from -purple-400 to-violet-600 text-white border-none text-sm font-light py-2 px-20 rounded-full cursor-pointer">
-        Logout
-      </button>
+
+      {/* Logout — always pinned to bottom */}
+      <div className="flex-shrink-0 w-full pt-4">
+        <button
+          onClick={logout}
+          className="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[12px] hover:bg-red-500/20 transition-colors cursor-pointer"
+        >
+          Logout
+        </button>
+      </div>
     </div>
-  ) : null;
+  );
 };
 
 export default RightSidebar;
