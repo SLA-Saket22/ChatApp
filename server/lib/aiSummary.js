@@ -30,7 +30,7 @@ export const summarizeMessages = async (messages) => {
                         content: `Summarize this chat in 2-3 short bullet points:\n\n${conversation}`,
                     },
                 ],
-            }),
+            }), 
         });
 
         const data = await response.json();
